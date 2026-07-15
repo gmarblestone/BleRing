@@ -4,7 +4,7 @@
 
 This repository contains a custom Home Assistant integration for Colmi R02-family smart rings using the upstream BLE client at <https://github.com/tahnok/colmi_r02_client>.
 
-Current release: `0.1.3`
+Current release: `0.1.4`
 
 ## What it does
 
@@ -21,6 +21,7 @@ This is the cleanest path if you want Home Assistant to load the integration aut
 1. Update the ring MAC address in [ha-config/configuration.yaml](ha-config/configuration.yaml).
 2. Start Home Assistant with `docker compose up -d`.
 3. Restart Home Assistant after each integration update so it reloads the files and dependency version.
+4. Check container health with `docker compose ps`.
 
 The compose file mounts this repository's [custom_components](custom_components) directory directly into `/config/custom_components`, so updates in the repo become updates in Home Assistant on restart.
 
@@ -49,6 +50,7 @@ Notes for BLE in Docker:
 - If you update the integration but Home Assistant still shows old behavior, restart the container so it reloads the bind-mounted files.
 - If Python dependency installation fails during startup, check the Home Assistant container logs with `docker compose logs -f homeassistant`.
 - If you run Docker on Windows or macOS without a Linux Bluetooth stack exposed into the container host, BLE access will usually fail. This setup is aimed at Linux.
+- Run `./scripts/check_ble_host.sh` on the Linux Docker host to verify DBus and Bluetooth adapter visibility before debugging Home Assistant itself.
 
 ## UI install
 
@@ -133,6 +135,11 @@ The custom SQLite database includes these tables:
 - `syncs`
 - `heart_rates`
 - `sport_details`
+
+## CI and assets
+
+- GitHub Actions CI is defined in `.github/workflows/ci.yml` and validates JSON, YAML, Python syntax, and version consistency on pushes and pull requests.
+- Local brand assets live in `custom_components/colmi_ring/brand/` so modern Home Assistant versions can show an integration icon and logo without relying on the central brands repository.
 
 ## Notes
 

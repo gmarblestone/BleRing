@@ -4,3 +4,8 @@ __pycache__/
 *.py[cod]
 *.sqlite3
 *.db
+ha-config/.storage/
+ha-config/home-assistant*.log
+ha-config/deps/
+ha-config/tts/
+ha-config/www/

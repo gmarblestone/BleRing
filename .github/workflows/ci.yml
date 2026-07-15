@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate JSON and YAML metadata
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          import yaml
+
+          root = Path('.')
+          json.loads((root / 'hacs.json').read_text(encoding='utf-8'))
+          json.loads((root / 'custom_components/colmi_ring/manifest.json').read_text(encoding='utf-8'))
+          yaml.safe_load((root / 'docker-compose.yml').read_text(encoding='utf-8'))
+          yaml.safe_load((root / 'ha-config/configuration.yaml').read_text(encoding='utf-8'))
+          PY
+
+      - name: Compile integration
+        run: python -m compileall custom_components
+
+      - name: Check release versions match
+        run: |
+          python - <<'PY'
+          import json
+          import re
+          from pathlib import Path
+
+          readme = (Path('README.md')).read_text(encoding='utf-8')
+          manifest = json.loads(Path('custom_components/colmi_ring/manifest.json').read_text(encoding='utf-8'))
+          match = re.search(r"Current release: `([^`]+)`", readme)
+          assert match, 'README release version line missing'
+          assert match.group(1) == manifest['version'], f"README version {match.group(1)} does not match manifest {manifest['version']}"
+          PY
