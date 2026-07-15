@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 import voluptuous as vol
@@ -10,6 +11,8 @@ from homeassistant.helpers.selector import SelectOptionDict, SelectSelector, Sel
 
 from .api import ColmiRingApi
 from .const import CONF_DB_PATH, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL, DOMAIN
+
+LOGGER = logging.getLogger(__name__)
 
 
 def _normalize_address(address: str) -> str:
@@ -76,11 +79,16 @@ class ColmiRingConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> config_entries.ConfigFlowResult:
         errors: dict[str, str] = {}
         if user_input is None:
-            self._discovered_devices = await ColmiRingApi.scan()
+            try:
+                self._discovered_devices = await ColmiRingApi.scan()
+            except Exception:
+                LOGGER.exception("BLE scan failed while opening config flow")
+                self._discovered_devices = []
+                errors["base"] = "scan_failed"
             return self.async_show_form(
                 step_id="user",
                 data_schema=_build_scan_schema(None, self._discovered_devices),
-                errors={"base": "no_devices_found"} if not self._discovered_devices else None,
+                errors=errors or ({"base": "no_devices_found"} if not self._discovered_devices else None),
             )
 
         cleaned = _merge_scan_input(user_input, self._discovered_devices)

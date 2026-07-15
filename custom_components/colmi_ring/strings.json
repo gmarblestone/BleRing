@@ -19,7 +19,8 @@
     },
     "error": {
       "address_required": "Select a discovered ring or enter a MAC address.",
-      "no_devices_found": "No compatible rings were found during scan. You can still enter the MAC address manually."
+      "no_devices_found": "No compatible rings were found during scan. You can still enter the MAC address manually.",
+      "scan_failed": "Bluetooth scan failed on this host. You can still enter the MAC address manually."
     }
   },
   "options": {
