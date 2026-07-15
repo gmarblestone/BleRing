@@ -332,11 +332,14 @@ class ColmiRingClient:
             self._queues[CMD_SET_TIME].put_nowait(True)
 
 
-async def scan_devices() -> list[dict[str, str]]:
+async def scan_devices(include_all: bool = False) -> list[dict[str, str]]:
     devices = await BleakScanner.discover()
     results: list[dict[str, str]] = []
     for device in devices:
         name = device.name or ""
+        if include_all:
+            results.append({"name": name or "Unknown BLE Device", "address": device.address})
+            continue
         if name and any(name.startswith(prefix) for prefix in DEVICE_NAME_PREFIXES):
             results.append({"name": name, "address": device.address})
     return sorted(results, key=lambda item: (item["name"], item["address"]))

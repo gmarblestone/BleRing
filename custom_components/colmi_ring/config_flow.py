@@ -72,15 +72,23 @@ def _build_options_schema(current: dict[str, Any]) -> vol.Schema:
 class ColmiRingConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
     _discovered_devices: list[dict[str, str]]
+    _showing_all_devices: bool
 
     def __init__(self) -> None:
         self._discovered_devices = []
+        self._showing_all_devices = False
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> config_entries.ConfigFlowResult:
         errors: dict[str, str] = {}
         if user_input is None:
             try:
                 self._discovered_devices = await ColmiRingApi.scan()
+                self._showing_all_devices = False
+                if not self._discovered_devices:
+                    all_devices = await ColmiRingApi.scan(include_all=True)
+                    if all_devices:
+                        self._discovered_devices = all_devices
+                        self._showing_all_devices = True
             except Exception:
                 LOGGER.exception("BLE scan failed while opening config flow")
                 self._discovered_devices = []
@@ -88,7 +96,12 @@ class ColmiRingConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return self.async_show_form(
                 step_id="user",
                 data_schema=_build_scan_schema(None, self._discovered_devices),
-                errors=errors or ({"base": "no_devices_found"} if not self._discovered_devices else None),
+                errors=errors
+                or (
+                    {"base": "showing_all_devices"}
+                    if self._showing_all_devices
+                    else ({"base": "no_devices_found"} if not self._discovered_devices else None)
+                ),
             )
 
         cleaned = _merge_scan_input(user_input, self._discovered_devices)

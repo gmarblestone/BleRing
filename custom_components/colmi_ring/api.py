@@ -21,8 +21,8 @@ class ColmiRingApi:
         return self._address
 
     @staticmethod
-    async def scan() -> list[dict[str, str]]:
-        return await scan_devices()
+    async def scan(include_all: bool = False) -> list[dict[str, str]]:
+        return await scan_devices(include_all=include_all)
 
     async def fetch_snapshot(self) -> dict[str, Any]:
         snapshot = self._store.get_recent_metrics(self._address)

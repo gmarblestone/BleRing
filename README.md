@@ -4,7 +4,7 @@
 
 This repository contains a custom Home Assistant integration for Colmi R02-family smart rings, with the BLE protocol implemented directly inside the integration for Home Assistant compatibility.
 
-Current release: `0.2.0`
+Current release: `0.2.1`
 
 ## What it does
 
@@ -23,6 +23,8 @@ This is the cleanest path if you want Home Assistant to load the integration aut
 3. In Home Assistant, open Settings > Devices & services > Add Integration.
 4. Add `Colmi Ring`, scan for nearby devices, and pick the ring you want.
 5. Restart Home Assistant after each integration update so it reloads the files and dependency version.
+
+If no known ring names are detected, the setup flow now falls back to showing all nearby BLE devices so you can still pick the correct MAC address.
 
 The compose file mounts this repository's [custom_components](custom_components) directory directly into `/config/custom_components`, so updates in the repo become updates in Home Assistant on restart.
 
