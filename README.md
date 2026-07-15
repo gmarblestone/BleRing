@@ -1,5 +1,7 @@
 # Colmi Ring Home Assistant Integration
 
+[![Open your Home Assistant instance and open this repository inside HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=gmarblestone&repository=BleRing&category=integration)
+
 This repository contains a custom Home Assistant integration for Colmi R02-family smart rings using the upstream BLE client at <https://github.com/tahnok/colmi_r02_client>.
 
 Current release: `0.1.1`
