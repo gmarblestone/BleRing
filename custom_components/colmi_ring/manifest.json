@@ -9,8 +9,6 @@
   "loggers": [
     "custom_components.colmi_ring"
   ],
-  "requirements": [
-    "colmi-r02-client>=0.1.0"
-  ],
-  "version": "0.1.6"
+  "requirements": [],
+  "version": "0.2.0"
 }
