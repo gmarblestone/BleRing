@@ -4,7 +4,7 @@
 
 This repository contains a custom Home Assistant integration for Colmi R02-family smart rings using the upstream BLE client at <https://github.com/tahnok/colmi_r02_client>.
 
-Current release: `0.1.1`
+Current release: `0.1.2`
 
 ## What it does
 
@@ -14,14 +14,43 @@ Current release: `0.1.1`
 - Syncs historical heart-rate and activity data from the ring into a dedicated SQLite database stored under the Home Assistant config directory.
 - Lets Home Assistant Recorder persist sensor state history automatically.
 
-## Install
+## Docker install
 
-1. Copy `custom_components/colmi_ring` into your Home Assistant `config/custom_components` directory.
-2. Restart Home Assistant so it installs the `colmi-r02-client` Python dependency.
-3. In Home Assistant, open Settings > Devices & services > Add Integration and add `Colmi Ring`.
-4. Pick a discovered ring from the scan results, or enter the BLE MAC address manually.
-5. Repeat the add-integration step for each additional user or ring.
-6. If a ring's MAC address changes, remove that entry and add it again with the new address.
+This is the cleanest path if you want Home Assistant to load the integration automatically from your filesystem instead of through HACS.
+
+1. Copy [docker-compose.yml.example](docker-compose.yml.example) to `docker-compose.yml`.
+2. Create a local `ha-config` directory next to it.
+3. Copy [configuration.yaml.example](configuration.yaml.example) to `ha-config/configuration.yaml` and update the ring MAC address.
+4. Start Home Assistant with `docker compose up -d`.
+5. Restart Home Assistant after each integration update so it reloads the files and dependency version.
+
+The compose file mounts this repository's [custom_components](custom_components) directory directly into `/config/custom_components`, so updates in the repo become updates in Home Assistant on restart.
+
+Example host layout:
+
+```text
+BleRing/
+  custom_components/
+  docker-compose.yml
+  ha-config/
+    configuration.yaml
+```
+
+Notes for BLE in Docker:
+
+- The example uses `network_mode: host` and mounts `/run/dbus`, which is the typical Linux setup for Bluetooth access from Home Assistant.
+- This is intended for a Linux Docker host with a local Bluetooth adapter.
+- If Home Assistant runs elsewhere, the BLE adapter must be available on that host.
+
+## UI install
+
+If you do want UI-managed setup instead of YAML import:
+
+1. Start Home Assistant with the integration mounted.
+2. Open Settings > Devices & services > Add Integration and add `Colmi Ring`.
+3. Pick a discovered ring from the scan results, or enter the BLE MAC address manually.
+4. Repeat the add-integration step for each additional user or ring.
+5. If a ring's MAC address changes, remove that entry and add it again with the new address.
 
 ## Configuration
 
@@ -33,7 +62,7 @@ If you want to discover the MAC address first, call the scan service from Develo
 action: colmi_ring.scan
 ```
 
-If you still want to seed entries from YAML, the integration can import them on startup:
+For the Docker route, YAML import is what makes the integration show up automatically on startup:
 
 ```yaml
 colmi_ring:
