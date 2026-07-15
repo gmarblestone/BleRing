@@ -2,7 +2,7 @@
 
 This repository contains a custom Home Assistant integration for Colmi R02-family smart rings using the upstream BLE client at <https://github.com/tahnok/colmi_r02_client>.
 
-Current release: `0.1.0`
+Current release: `0.1.1`
 
 ## What it does
 
