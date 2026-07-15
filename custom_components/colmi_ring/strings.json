@@ -1,0 +1,62 @@
+{
+  "title": "Colmi Ring",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add Colmi ring",
+        "description": "Pick a discovered ring or enter the BLE MAC address manually. Add multiple entries for multiple users.",
+        "data": {
+          "discovered_address": "Discovered rings",
+          "name": "Display name",
+          "address": "MAC address",
+          "scan_interval": "Polling interval (seconds)",
+          "db_path": "History database path"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "This ring is already configured."
+    },
+    "error": {
+      "address_required": "Select a discovered ring or enter a MAC address.",
+      "no_devices_found": "No compatible rings were found during scan. You can still enter the MAC address manually."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Colmi ring settings",
+        "data": {
+          "name": "Display name",
+          "scan_interval": "Polling interval (seconds)",
+          "db_path": "History database path"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery": {
+        "name": "Battery"
+      },
+      "heart_rate": {
+        "name": "Heart Rate"
+      },
+      "spo2": {
+        "name": "Blood Oxygen"
+      },
+      "steps": {
+        "name": "Steps"
+      },
+      "distance": {
+        "name": "Distance"
+      },
+      "calories": {
+        "name": "Calories"
+      },
+      "last_sync": {
+        "name": "Last Sync"
+      }
+    }
+  }
+}

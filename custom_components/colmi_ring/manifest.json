@@ -1,0 +1,15 @@
+{
+  "domain": "colmi_ring",
+  "name": "Colmi Ring",
+  "codeowners": [],
+  "config_flow": true,
+  "documentation": "https://github.com/tahnok/colmi_r02_client",
+  "iot_class": "local_polling",
+  "loggers": [
+    "custom_components.colmi_ring"
+  ],
+  "requirements": [
+    "colmi-r02-client>=0.1.0"
+  ],
+  "version": "0.1.0"
+}

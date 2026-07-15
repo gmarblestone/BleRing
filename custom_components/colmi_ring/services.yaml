@@ -1,0 +1,46 @@
+scan:
+  name: Scan BLE rings
+  description: Discover nearby supported Colmi ring BLE devices and return their names and MAC addresses.
+
+sync:
+  name: Sync ring history
+  description: Read heart-rate and activity history from the ring and store it in the integration SQLite database.
+  fields:
+    address:
+      name: Ring address
+      description: Required when multiple rings are configured.
+      example: "70:CB:0D:D0:34:1C"
+      selector:
+        text:
+    start:
+      name: Start timestamp
+      description: Optional ISO timestamp for the start of the sync window.
+      example: "2026-07-01T00:00:00+00:00"
+      selector:
+        text:
+    end:
+      name: End timestamp
+      description: Optional ISO timestamp for the end of the sync window.
+      example: "2026-07-15T00:00:00+00:00"
+      selector:
+        text:
+
+read_realtime:
+  name: Read realtime metric
+  description: Trigger a realtime ring measurement and update HA sensors.
+  fields:
+    address:
+      name: Ring address
+      description: Required when multiple rings are configured.
+      example: "70:CB:0D:D0:34:1C"
+      selector:
+        text:
+    reading:
+      name: Reading type
+      description: Realtime measurement to request from the ring.
+      required: true
+      selector:
+        select:
+          options:
+            - heart-rate
+            - spo2

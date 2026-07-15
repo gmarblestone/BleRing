@@ -1,0 +1,5 @@
+colmi_ring:
+  - address: "70:CB:0D:D0:34:1C"
+    name: "Bedroom Ring"
+    scan_interval: 900
+    db_path: "/config/colmi_ring_history.sqlite3"
