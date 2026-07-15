@@ -4,7 +4,7 @@
 
 This repository contains a custom Home Assistant integration for Colmi R02-family smart rings using the upstream BLE client at <https://github.com/tahnok/colmi_r02_client>.
 
-Current release: `0.1.2`
+Current release: `0.1.3`
 
 ## What it does
 
@@ -18,13 +18,13 @@ Current release: `0.1.2`
 
 This is the cleanest path if you want Home Assistant to load the integration automatically from your filesystem instead of through HACS.
 
-1. Copy [docker-compose.yml.example](docker-compose.yml.example) to `docker-compose.yml`.
-2. Create a local `ha-config` directory next to it.
-3. Copy [configuration.yaml.example](configuration.yaml.example) to `ha-config/configuration.yaml` and update the ring MAC address.
-4. Start Home Assistant with `docker compose up -d`.
-5. Restart Home Assistant after each integration update so it reloads the files and dependency version.
+1. Update the ring MAC address in [ha-config/configuration.yaml](ha-config/configuration.yaml).
+2. Start Home Assistant with `docker compose up -d`.
+3. Restart Home Assistant after each integration update so it reloads the files and dependency version.
 
 The compose file mounts this repository's [custom_components](custom_components) directory directly into `/config/custom_components`, so updates in the repo become updates in Home Assistant on restart.
+
+If you want a second compose variant to edit locally without changing the committed one, [docker-compose.yml.example](docker-compose.yml.example) remains as a copyable template.
 
 Example host layout:
 
@@ -41,6 +41,14 @@ Notes for BLE in Docker:
 - The example uses `network_mode: host` and mounts `/run/dbus`, which is the typical Linux setup for Bluetooth access from Home Assistant.
 - This is intended for a Linux Docker host with a local Bluetooth adapter.
 - If Home Assistant runs elsewhere, the BLE adapter must be available on that host.
+
+## Docker troubleshooting
+
+- If the ring scan returns nothing, verify the Docker host itself can see the Bluetooth adapter before debugging Home Assistant.
+- If Home Assistant starts but Bluetooth operations fail, confirm `/run/dbus` is mounted and that the container is running with `network_mode: host`.
+- If you update the integration but Home Assistant still shows old behavior, restart the container so it reloads the bind-mounted files.
+- If Python dependency installation fails during startup, check the Home Assistant container logs with `docker compose logs -f homeassistant`.
+- If you run Docker on Windows or macOS without a Linux Bluetooth stack exposed into the container host, BLE access will usually fail. This setup is aimed at Linux.
 
 ## UI install
 
