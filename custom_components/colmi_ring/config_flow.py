@@ -98,13 +98,6 @@ class ColmiRingConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         title = cleaned.get(CONF_NAME) or cleaned[CONF_ADDRESS]
         return self.async_create_entry(title=title, data=cleaned)
 
-    async def async_step_import(self, user_input: dict[str, Any]) -> config_entries.ConfigFlowResult:
-        cleaned = _clean_input(user_input)
-        await self.async_set_unique_id(cleaned[CONF_ADDRESS])
-        self._abort_if_unique_id_configured()
-        title = cleaned.get(CONF_NAME) or cleaned[CONF_ADDRESS]
-        return self.async_create_entry(title=title, data=cleaned)
-
     @staticmethod
     def async_get_options_flow(config_entry: config_entries.ConfigEntry) -> config_entries.OptionsFlow:
         return ColmiRingOptionsFlow(config_entry)

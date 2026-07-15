@@ -4,7 +4,7 @@
 
 This repository contains a custom Home Assistant integration for Colmi R02-family smart rings using the upstream BLE client at <https://github.com/tahnok/colmi_r02_client>.
 
-Current release: `0.1.4`
+Current release: `0.1.5`
 
 ## What it does
 
@@ -18,10 +18,11 @@ Current release: `0.1.4`
 
 This is the cleanest path if you want Home Assistant to load the integration automatically from your filesystem instead of through HACS.
 
-1. Update the ring MAC address in [ha-config/configuration.yaml](ha-config/configuration.yaml).
-2. Start Home Assistant with `docker compose up -d`.
-3. Restart Home Assistant after each integration update so it reloads the files and dependency version.
-4. Check container health with `docker compose ps`.
+1. Start Home Assistant with `docker compose up -d`.
+2. Check container health with `docker compose ps`.
+3. In Home Assistant, open Settings > Devices & services > Add Integration.
+4. Add `Colmi Ring`, scan for nearby devices, and pick the ring you want.
+5. Restart Home Assistant after each integration update so it reloads the files and dependency version.
 
 The compose file mounts this repository's [custom_components](custom_components) directory directly into `/config/custom_components`, so updates in the repo become updates in Home Assistant on restart.
 
@@ -54,7 +55,7 @@ Notes for BLE in Docker:
 
 ## UI install
 
-If you do want UI-managed setup instead of YAML import:
+The integration is now UI-managed by default:
 
 1. Start Home Assistant with the integration mounted.
 2. Open Settings > Devices & services > Add Integration and add `Colmi Ring`.
@@ -72,15 +73,7 @@ If you want to discover the MAC address first, call the scan service from Develo
 action: colmi_ring.scan
 ```
 
-For the Docker route, YAML import is what makes the integration show up automatically on startup:
-
-```yaml
-colmi_ring:
-  - address: "70:CB:0D:D0:34:1C"
-    name: "Bedroom Ring"
-    scan_interval: 900
-    db_path: "/config/colmi_ring_history.sqlite3"
-```
+No `colmi_ring:` YAML block is required for normal setup anymore.
 
 ## Services
 
