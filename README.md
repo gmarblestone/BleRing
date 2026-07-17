@@ -4,7 +4,20 @@
 
 This repository contains a custom Home Assistant integration for Colmi R02-family smart rings, with the BLE protocol implemented directly inside the integration for Home Assistant compatibility.
 
-Current release: `0.2.9`
+Current release: `0.2.10`
+
+## Debug logging
+
+To turn on verbose logs in Home Assistant, add this to your `configuration.yaml`:
+
+```yaml
+logger:
+  default: warning
+  logs:
+    custom_components.colmi_ring: debug
+```
+
+That will show BLE connection attempts, device resolution, packet flow, snapshot fetches, and coordinator refresh results for this integration.
 
 ## What it does
 

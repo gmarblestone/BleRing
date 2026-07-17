@@ -33,6 +33,7 @@ class ColmiRingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         except Exception:
             LOGGER.exception("Deferred refresh for ring after unexpected data read failure")
             return {**self._current_data(), **self.realtime_values}
+        LOGGER.debug("Coordinator refresh succeeded for ring %s with keys=%s", self.api.address, sorted(data.keys()))
         return {**data, **self.realtime_values}
 
     def apply_partial_update(self, data: dict[str, Any]) -> None:

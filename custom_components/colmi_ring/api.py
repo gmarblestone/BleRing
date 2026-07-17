@@ -29,15 +29,18 @@ class ColmiRingApi:
 
     async def fetch_snapshot(self) -> dict[str, Any]:
         snapshot = self._store.get_recent_metrics(self._address)
+        LOGGER.debug("Fetching snapshot for ring %s with cached metrics keys=%s", self._address, sorted(snapshot.keys()))
         async with ColmiRingClient(self._hass, self._address) as client:
             battery = await client.get_battery()
             info = await client.get_device_info()
         snapshot["battery"] = battery.battery_level
         snapshot["battery_raw"] = self._normalize(battery)
         snapshot["device_info"] = info
+        LOGGER.debug("Snapshot ready for ring %s with keys=%s", self._address, sorted(snapshot.keys()))
         return snapshot
 
     async def read_realtime(self, reading_name: str) -> dict[str, Any]:
+        LOGGER.debug("Reading realtime %s for ring %s", reading_name, self._address)
         async with ColmiRingClient(self._hass, self._address) as client:
             values = await client.get_realtime_reading(reading_name)
         return {
@@ -53,6 +56,7 @@ class ColmiRingApi:
         start: datetime | None = None,
         end: datetime | None = None,
     ) -> SyncSummary:
+        LOGGER.debug("Syncing history for ring %s from %s to %s", self._address, start, end)
         sync_start = start or self._store.get_last_sync(self._address) or (datetime.now(timezone.utc) - timedelta(days=7))
         sync_end = end or datetime.now(timezone.utc)
         if sync_start.tzinfo is None:

@@ -225,6 +225,7 @@ class ColmiRingClient:
         await self.disconnect()
 
     async def connect(self) -> None:
+        LOGGER.debug("Preparing BLE connection for ring %s", self.address)
         await close_stale_connections_by_address(self.address)
         await bluetooth.async_request_active_scan(self.hass)
         device = bluetooth.async_ble_device_from_address(self.hass, self.address, connectable=True)
@@ -237,6 +238,12 @@ class ColmiRingClient:
                 BluetoothReachabilityIntent.CONNECTION,
             )
             raise RuntimeError(f"Ring {self.address} not found during connect: {reason}")
+        LOGGER.debug(
+            "Resolved BLE device for %s: name=%s details=%s",
+            self.address,
+            device.name,
+            device.details,
+        )
         try:
             self._client = await establish_connection(
                 BleakClientWithServiceCache,
@@ -254,6 +261,7 @@ class ColmiRingClient:
                 ) from err
             raise
         services = await self._resolve_services()
+        LOGGER.debug("Connected to %s; discovered %s GATT services", self.address, len(list(services)))
         uart_service = services.get_service(UART_SERVICE_UUID)
         if uart_service is None:
             raise RuntimeError("Ring UART service not found")
@@ -261,14 +269,18 @@ class ColmiRingClient:
         if self._rx_char is None:
             raise RuntimeError("Ring RX characteristic not found")
         await self._client.start_notify(UART_TX_CHAR_UUID, self._handle_notification)
+        LOGGER.debug("Notifications enabled for ring %s", self.address)
 
     async def disconnect(self) -> None:
         if self._client.is_connected:
+            LOGGER.debug("Disconnecting from ring %s", self.address)
             await self._client.disconnect()
 
     async def get_battery(self) -> BatteryInfo:
+        LOGGER.debug("Requesting battery data from ring %s", self.address)
         await self._send_packet(make_packet(CMD_BATTERY))
         result = await asyncio.wait_for(self._queues[CMD_BATTERY].get(), timeout=5)
+        LOGGER.debug("Received battery response from ring %s: level=%s charging=%s", self.address, result.battery_level, result.charging)
         return result
 
     async def get_device_info(self) -> dict[str, str]:
@@ -284,6 +296,7 @@ class ColmiRingClient:
         fw_char = service.get_characteristic(DEVICE_FW_UUID)
         if fw_char is not None:
             info["fw_version"] = (await self._client.read_gatt_char(fw_char)).decode("utf-8", errors="ignore")
+        LOGGER.debug("Read device info from ring %s: %s", self.address, info)
         return info
 
     async def _resolve_services(self) -> Any:
@@ -345,6 +358,7 @@ class ColmiRingClient:
     async def _send_packet(self, packet: bytearray) -> None:
         if self._rx_char is None:
             raise RuntimeError("BLE client not connected")
+        LOGGER.debug("Sending packet to ring %s: cmd=0x%02X", self.address, packet[0])
         await self._client.write_gatt_char(self._rx_char, packet, response=False)
 
     def _handle_notification(self, _sender: Any, packet: bytearray) -> None:
@@ -353,6 +367,7 @@ class ColmiRingClient:
             return
 
         packet_type = packet[0]
+        LOGGER.debug("Received packet from ring %s: cmd=0x%02X", self.address, packet_type)
         if packet_type == CMD_BATTERY:
             self._queues[CMD_BATTERY].put_nowait(BatteryInfo(battery_level=packet[1], charging=bool(packet[2])))
             return
