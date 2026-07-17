@@ -3,7 +3,7 @@
   "name": "Colmi Ring",
   "codeowners": [],
   "config_flow": true,
-  "documentation": "https://github.com/tahnok/colmi_r02_client",
+  "documentation": "https://github.com/gmarblestone/BleRing",
   "issue_tracker": "https://github.com/gmarblestone/BleRing/issues",
   "iot_class": "local_polling",
   "dependencies": [
@@ -13,5 +13,5 @@
     "custom_components.colmi_ring"
   ],
   "requirements": [],
-  "version": "0.2.6"
+  "version": "0.2.7"
 }

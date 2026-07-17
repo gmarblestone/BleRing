@@ -241,6 +241,7 @@ class ColmiRingClient:
             device,
             device.name or self.address,
             max_attempts=3,
+            services=[UART_SERVICE_UUID, DEVICE_INFO_UUID],
         )
         services = await self._resolve_services()
         uart_service = services.get_service(UART_SERVICE_UUID)
