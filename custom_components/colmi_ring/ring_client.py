@@ -9,7 +9,7 @@ import struct
 from typing import Any
 
 from bleak import BleakClient, BleakScanner
-from bleak_retry_connector import BleakClientWithServiceCache, close_stale_connections_by_address, establish_connection
+from bleak_retry_connector import BleakClientWithServiceCache, BleakConnectionError, close_stale_connections_by_address, establish_connection
 from homeassistant.components import bluetooth
 from homeassistant.components.bluetooth import BluetoothReachabilityIntent
 from homeassistant.core import HomeAssistant
@@ -237,13 +237,22 @@ class ColmiRingClient:
                 BluetoothReachabilityIntent.CONNECTION,
             )
             raise RuntimeError(f"Ring {self.address} not found during connect: {reason}")
-        self._client = await establish_connection(
-            BleakClientWithServiceCache,
-            device,
-            device.name or self.address,
-            max_attempts=3,
-            services=[UART_SERVICE_UUID, DEVICE_INFO_UUID],
-        )
+        try:
+            self._client = await establish_connection(
+                BleakClientWithServiceCache,
+                device,
+                device.name or self.address,
+                max_attempts=3,
+                services=[UART_SERVICE_UUID, DEVICE_INFO_UUID],
+            )
+        except BleakConnectionError as err:
+            message = str(err)
+            if "failed to discover services, device disconnected" in message:
+                raise RuntimeError(
+                    f"{message}. The ring likely dropped the GATT session because another client still has it open. "
+                    "Close QRing or any phone Bluetooth connection to the ring, then retry from Home Assistant."
+                ) from err
+            raise
         services = await self._resolve_services()
         uart_service = services.get_service(UART_SERVICE_UUID)
         if uart_service is None:

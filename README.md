@@ -4,7 +4,7 @@
 
 This repository contains a custom Home Assistant integration for Colmi R02-family smart rings, with the BLE protocol implemented directly inside the integration for Home Assistant compatibility.
 
-Current release: `0.2.8`
+Current release: `0.2.9`
 
 ## What it does
 
