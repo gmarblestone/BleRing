@@ -9,7 +9,7 @@
           "discovered_address": "Discovered rings",
           "name": "Display name",
           "address": "MAC address",
-          "scan_interval": "Polling interval (seconds)",
+          "scan_interval": "Polling interval in seconds (0 disables automatic polling)",
           "db_path": "History database path"
         }
       }
@@ -30,7 +30,7 @@
         "title": "Colmi ring settings",
         "data": {
           "name": "Display name",
-          "scan_interval": "Polling interval (seconds)",
+          "scan_interval": "Polling interval in seconds (0 disables automatic polling)",
           "db_path": "History database path"
         }
       }

@@ -4,7 +4,7 @@
 
 This repository contains a custom Home Assistant integration for Colmi R02-family smart rings, with the BLE protocol implemented directly inside the integration for Home Assistant compatibility.
 
-Current release: `0.2.12`
+Current release: `0.2.13`
 
 ## Debug logging
 
@@ -18,6 +18,14 @@ logger:
 ```
 
 That will show BLE connection attempts, device resolution, packet flow, snapshot fetches, and coordinator refresh results for this integration.
+
+## Polling behavior
+
+Automatic polling now defaults to once per hour.
+
+The integration will only attempt a live BLE refresh when Home Assistant has seen a recent connectable advertisement from the ring. If the ring is out of range or has not advertised recently, it keeps the cached values and avoids a noisy connection attempt.
+
+Set the polling interval to `0` in the integration options to disable automatic polling completely. In that mode, use `colmi_ring.read_realtime` or `colmi_ring.sync` only when you want to talk to the ring.
 
 ## What it does
 
