@@ -9,7 +9,7 @@ import struct
 from typing import Any
 
 from bleak import BleakClient, BleakScanner
-from bleak_retry_connector import BleakClientWithServiceCache, establish_connection
+from bleak_retry_connector import BleakClientWithServiceCache, close_stale_connections_by_address, establish_connection
 from homeassistant.components import bluetooth
 from homeassistant.components.bluetooth import BluetoothReachabilityIntent
 from homeassistant.core import HomeAssistant
@@ -225,9 +225,10 @@ class ColmiRingClient:
         await self.disconnect()
 
     async def connect(self) -> None:
+        await close_stale_connections_by_address(self.address)
+        await bluetooth.async_request_active_scan(self.hass)
         device = bluetooth.async_ble_device_from_address(self.hass, self.address, connectable=True)
         if device is None:
-            await bluetooth.async_request_active_scan(self.hass)
             device = bluetooth.async_ble_device_from_address(self.hass, self.address, connectable=True)
         if device is None:
             reason = bluetooth.async_address_reachability_diagnostics(
