@@ -27,8 +27,11 @@ class ColmiRingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         try:
             data = await self.api.fetch_snapshot()
-        except (BleakError, RuntimeError) as err:
-            LOGGER.warning("Deferred refresh for ring until device is seen: %s", err)
+        except (BleakError, RuntimeError, TimeoutError) as err:
+            LOGGER.warning("Deferred refresh for ring until data can be read: %s", err)
+            return {**getattr(self, "data", {}), **self.realtime_values}
+        except Exception:
+            LOGGER.exception("Deferred refresh for ring after unexpected data read failure")
             return {**getattr(self, "data", {}), **self.realtime_values}
         return {**data, **self.realtime_values}
 
