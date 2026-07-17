@@ -171,12 +171,19 @@ def _parse_dt(value: str | None) -> datetime | None:
 
 
 def _resolve_target(hass: HomeAssistant, call: ServiceCall) -> dict[str, Any]:
+    entries = hass.data.get(DOMAIN, {})
+    configured = [data["address"] for data in entries.values()]
     address = call.data.get(CONF_ADDRESS)
     if address:
         normalized = address.upper()
-        for data in hass.data[DOMAIN].values():
+        for data in entries.values():
             if data["address"].upper() == normalized:
                 return data
-    if len(hass.data[DOMAIN]) == 1:
-        return next(iter(hass.data[DOMAIN].values()))
-    raise vol.Invalid("Specify address when multiple rings are configured")
+        raise vol.Invalid(
+            f"No configured ring matches address {address!r}. Configured addresses: {configured}"
+        )
+    if len(entries) == 1:
+        return next(iter(entries.values()))
+    raise vol.Invalid(
+        f"Specify address when multiple rings are configured. Configured addresses: {configured}"
+    )
