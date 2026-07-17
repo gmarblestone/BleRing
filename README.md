@@ -4,7 +4,7 @@
 
 This repository contains a custom Home Assistant integration for Colmi R02-family smart rings, with the BLE protocol implemented directly inside the integration for Home Assistant compatibility.
 
-Current release: `0.2.11`
+Current release: `0.2.12`
 
 ## Debug logging
 
@@ -67,6 +67,7 @@ Notes for BLE in Docker:
 - If Python dependency installation fails during startup, check the Home Assistant container logs with `docker compose logs -f homeassistant`.
 - If you run Docker on Windows or macOS without a Linux Bluetooth stack exposed into the container host, BLE access will usually fail. This setup is aimed at Linux.
 - Run `./scripts/check_ble_host.sh` on the Linux Docker host to verify DBus and Bluetooth adapter visibility before debugging Home Assistant itself.
+- If logs show `failed to discover services, device disconnected`, the integration reached the same failure point as the upstream Python client. In practice that usually means the ring is still connected to the phone app, too far away, asleep, or the local adapter/proxy cannot hold a stable GATT session.
 
 ## UI install
 

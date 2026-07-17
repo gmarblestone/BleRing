@@ -244,7 +244,6 @@ class ColmiRingClient:
             device.name,
             device.details,
         )
-        managed_connect_error: Exception | None = None
         try:
             self._client = await establish_connection(
                 BleakClientWithServiceCache,
@@ -254,13 +253,14 @@ class ColmiRingClient:
                 services=[UART_SERVICE_UUID, DEVICE_INFO_UUID],
             )
         except BleakConnectionError as err:
-            managed_connect_error = err
-            LOGGER.warning(
-                "HA-managed BLE connect failed for %s, trying direct BleakClient fallback: %s",
-                self.address,
-                err,
-            )
-            self._client = await self._connect_direct_bleak()
+            message = str(err)
+            if "failed to discover services, device disconnected" in message:
+                raise RuntimeError(
+                    f"{message}. Home Assistant's managed BLE connection path reached the same disconnect point as plain Bleak. "
+                    "This usually means the ring is busy with another client, out of range, asleep, or the adapter/proxy cannot keep the GATT session stable. "
+                    "Close QRing or any phone Bluetooth connection to the ring, bring the ring closer, and retry."
+                ) from err
+            raise
         services = await self._resolve_services()
         LOGGER.debug("Connected to %s; discovered %s GATT services", self.address, len(list(services)))
         uart_service = services.get_service(UART_SERVICE_UUID)
@@ -272,27 +272,10 @@ class ColmiRingClient:
         await self._client.start_notify(UART_TX_CHAR_UUID, self._handle_notification)
         LOGGER.debug("Notifications enabled for ring %s", self.address)
 
-        if managed_connect_error is not None:
-            LOGGER.debug("Direct BleakClient fallback succeeded for ring %s after managed connect failure", self.address)
-
     async def disconnect(self) -> None:
         if self._client.is_connected:
             LOGGER.debug("Disconnecting from ring %s", self.address)
             await self._client.disconnect()
-
-    async def _connect_direct_bleak(self) -> BleakClient:
-        client = BleakClient(self.address)
-        try:
-            await client.connect()
-        except Exception as err:
-            message = str(err)
-            if "failed to discover services, device disconnected" in message:
-                raise RuntimeError(
-                    f"{message}. The ring likely dropped the GATT session because another client still has it open. "
-                    "Close QRing or any phone Bluetooth connection to the ring, then retry from Home Assistant."
-                ) from err
-            raise
-        return client
 
     async def get_battery(self) -> BatteryInfo:
         LOGGER.debug("Requesting battery data from ring %s", self.address)
