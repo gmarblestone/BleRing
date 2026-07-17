@@ -3,8 +3,11 @@ from __future__ import annotations
 from dataclasses import asdict, is_dataclass
 from datetime import datetime, timedelta, timezone
 import logging
+import time
 from typing import Any
 
+from homeassistant.components import bluetooth
+from homeassistant.components.bluetooth import BluetoothReachabilityIntent, MONOTONIC_TIME
 from homeassistant.core import HomeAssistant
 
 from .ring_client import ColmiRingClient, HeartRateLog, NoData, SportDetail, scan_devices
@@ -26,6 +29,57 @@ class ColmiRingApi:
     @staticmethod
     async def scan(include_all: bool = False) -> list[dict[str, str]]:
         return await scan_devices(include_all=include_all)
+
+    async def diagnose_connection(self) -> dict[str, Any]:
+        result: dict[str, Any] = {
+            "address": self._address,
+            "steps": [],
+            "connected": False,
+            "battery": None,
+            "error": None,
+        }
+        steps: list[dict[str, Any]] = result["steps"]
+
+        service_info = bluetooth.async_last_service_info(self._hass, self._address, connectable=True)
+        if service_info is None:
+            steps.append({"step": "last_advertisement", "status": "missing"})
+        else:
+            steps.append(
+                {
+                    "step": "last_advertisement",
+                    "status": "ok",
+                    "age_seconds": round(MONOTONIC_TIME() - service_info.time, 1),
+                    "rssi": service_info.rssi,
+                    "source": service_info.source,
+                    "connectable": service_info.connectable,
+                }
+            )
+
+        result["reachability"] = bluetooth.async_address_reachability_diagnostics(
+            self._hass, self._address, BluetoothReachabilityIntent.CONNECTION
+        )
+
+        started = time.monotonic()
+        try:
+            async with ColmiRingClient(self._hass, self._address) as client:
+                steps.append({"step": "connect", "status": "ok", "elapsed_seconds": round(time.monotonic() - started, 2)})
+                battery = await client.get_battery()
+                steps.append({"step": "battery_read", "status": "ok", "battery_level": battery.battery_level, "charging": battery.charging})
+                result["battery"] = battery.battery_level
+                result["connected"] = True
+        except Exception as err:  # noqa: BLE001
+            steps.append(
+                {
+                    "step": "connect",
+                    "status": "failed",
+                    "elapsed_seconds": round(time.monotonic() - started, 2),
+                    "error_type": type(err).__name__,
+                    "error": str(err),
+                }
+            )
+            result["error"] = str(err)
+
+        return result
 
     async def fetch_snapshot(self) -> dict[str, Any]:
         snapshot = self._store.get_recent_metrics(self._address)

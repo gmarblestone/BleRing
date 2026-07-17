@@ -13,6 +13,7 @@ DEFAULT_DB_FILENAME = "colmi_ring_history.sqlite3"
 SERVICE_SCAN = "scan"
 SERVICE_SYNC = "sync"
 SERVICE_READ_REALTIME = "read_realtime"
+SERVICE_TEST_CONNECTION = "test_connection"
 
 ATTR_READING = "reading"
 ATTR_START = "start"

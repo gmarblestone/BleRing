@@ -44,3 +44,14 @@ read_realtime:
           options:
             - heart-rate
             - spo2
+
+test_connection:
+  name: Test ring connection
+  description: Attempt a one-shot BLE connection to the ring and return a detailed diagnostic of each step.
+  fields:
+    address:
+      name: Ring address
+      description: Required when multiple rings are configured.
+      example: "70:CB:0D:D0:34:1C"
+      selector:
+        text:

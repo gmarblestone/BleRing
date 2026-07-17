@@ -30,6 +30,7 @@ from .const import (
     SERVICE_READ_REALTIME,
     SERVICE_SCAN,
     SERVICE_SYNC,
+    SERVICE_TEST_CONNECTION,
 )
 from .coordinator import ColmiRingCoordinator
 from .storage import RingDataStore
@@ -114,6 +115,11 @@ async def _register_services(hass: HomeAssistant) -> None:
         coordinator.apply_partial_update(entry_data[DATA_STORE].get_recent_metrics(entry_data["address"]))
         return RingDataStore.summary_as_dict(summary)
 
+    async def handle_test_connection(call: ServiceCall) -> ServiceResponse:
+        entry_data = _resolve_target(hass, call)
+        api: ColmiRingApi = entry_data[DATA_CLIENT]
+        return await api.diagnose_connection()
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SCAN,
@@ -140,6 +146,17 @@ async def _register_services(hass: HomeAssistant) -> None:
             {
                 vol.Optional(ATTR_START): cv.string,
                 vol.Optional(ATTR_END): cv.string,
+                vol.Optional(CONF_ADDRESS): cv.string,
+            }
+        ),
+        supports_response=SupportsResponse.ONLY,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_TEST_CONNECTION,
+        handle_test_connection,
+        schema=vol.Schema(
+            {
                 vol.Optional(CONF_ADDRESS): cv.string,
             }
         ),
