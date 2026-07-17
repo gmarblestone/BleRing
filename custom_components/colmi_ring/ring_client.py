@@ -9,6 +9,7 @@ import struct
 from typing import Any
 
 from bleak import BleakClient, BleakScanner
+from bleak_retry_connector import BleakClientWithServiceCache, establish_connection
 
 LOGGER = logging.getLogger(__name__)
 
@@ -200,7 +201,7 @@ class SportDetailParser:
 class ColmiRingClient:
     def __init__(self, address: str) -> None:
         self.address = address
-        self._client = BleakClient(address)
+        self._client: BleakClient = BleakClient(address)
         self._queues: dict[int, asyncio.Queue[Any]] = {
             CMD_BATTERY: asyncio.Queue(),
             CMD_READ_HEART_RATE: asyncio.Queue(),
@@ -220,7 +221,15 @@ class ColmiRingClient:
         await self.disconnect()
 
     async def connect(self) -> None:
-        await self._client.connect()
+        device = await BleakScanner.find_device_by_address(self.address, timeout=10.0)
+        if device is None:
+            raise RuntimeError(f"Ring {self.address} not found during connect")
+        self._client = await establish_connection(
+            BleakClientWithServiceCache,
+            device,
+            device.name or self.address,
+            max_attempts=3,
+        )
         services = await self._client.get_services()
         uart_service = services.get_service(UART_SERVICE_UUID)
         if uart_service is None:
