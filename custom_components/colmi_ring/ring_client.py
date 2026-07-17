@@ -242,7 +242,7 @@ class ColmiRingClient:
             device.name or self.address,
             max_attempts=3,
         )
-        services = await self._client.get_services()
+        services = await self._resolve_services()
         uart_service = services.get_service(UART_SERVICE_UUID)
         if uart_service is None:
             raise RuntimeError("Ring UART service not found")
@@ -261,7 +261,7 @@ class ColmiRingClient:
         return result
 
     async def get_device_info(self) -> dict[str, str]:
-        services = await self._client.get_services()
+        services = await self._resolve_services()
         service = services.get_service(DEVICE_INFO_UUID)
         if service is None:
             return {}
@@ -274,6 +274,17 @@ class ColmiRingClient:
         if fw_char is not None:
             info["fw_version"] = (await self._client.read_gatt_char(fw_char)).decode("utf-8", errors="ignore")
         return info
+
+    async def _resolve_services(self) -> Any:
+        services = getattr(self._client, "services", None)
+        if services is not None:
+            return services
+
+        get_services = getattr(self._client, "get_services", None)
+        if get_services is None:
+            raise RuntimeError("Connected BLE client does not expose GATT services")
+
+        return await get_services()
 
     async def get_realtime_reading(self, reading_name: str) -> list[int] | None:
         reading_type = READING_TYPES[reading_name]
