@@ -29,14 +29,17 @@ class ColmiRingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             data = await self.api.fetch_snapshot()
         except (BleakError, RuntimeError, TimeoutError) as err:
             LOGGER.warning("Deferred refresh for ring until data can be read: %s", err)
-            return {**getattr(self, "data", {}), **self.realtime_values}
+            return {**self._current_data(), **self.realtime_values}
         except Exception:
             LOGGER.exception("Deferred refresh for ring after unexpected data read failure")
-            return {**getattr(self, "data", {}), **self.realtime_values}
+            return {**self._current_data(), **self.realtime_values}
         return {**data, **self.realtime_values}
 
     def apply_partial_update(self, data: dict[str, Any]) -> None:
         for key, value in data.items():
             if key.startswith("heart_rate") or key.startswith("spo2"):
                 self.realtime_values[key] = value
-        self.async_set_updated_data({**self.data, **data})
+        self.async_set_updated_data({**self._current_data(), **data})
+
+    def _current_data(self) -> dict[str, Any]:
+        return self.data or {}
