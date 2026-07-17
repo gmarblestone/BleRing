@@ -4,6 +4,7 @@ from datetime import timedelta
 import logging
 from typing import Any
 
+from bleak.exc import BleakError
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
@@ -24,7 +25,11 @@ class ColmiRingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.realtime_values: dict[str, Any] = {}
 
     async def _async_update_data(self) -> dict[str, Any]:
-        data = await self.api.fetch_snapshot()
+        try:
+            data = await self.api.fetch_snapshot()
+        except (BleakError, RuntimeError) as err:
+            LOGGER.warning("Deferred refresh for ring until device is seen: %s", err)
+            return {**getattr(self, "data", {}), **self.realtime_values}
         return {**data, **self.realtime_values}
 
     def apply_partial_update(self, data: dict[str, Any]) -> None:

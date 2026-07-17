@@ -5,6 +5,8 @@ from datetime import datetime, timedelta, timezone
 import logging
 from typing import Any
 
+from homeassistant.core import HomeAssistant
+
 from .ring_client import ColmiRingClient, HeartRateLog, NoData, SportDetail, scan_devices
 from .storage import RingDataStore, SyncSummary
 
@@ -12,7 +14,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class ColmiRingApi:
-    def __init__(self, address: str, store: RingDataStore) -> None:
+    def __init__(self, hass: HomeAssistant, address: str, store: RingDataStore) -> None:
+        self._hass = hass
         self._address = address
         self._store = store
 
@@ -26,7 +29,7 @@ class ColmiRingApi:
 
     async def fetch_snapshot(self) -> dict[str, Any]:
         snapshot = self._store.get_recent_metrics(self._address)
-        async with ColmiRingClient(self._address) as client:
+        async with ColmiRingClient(self._hass, self._address) as client:
             battery = await client.get_battery()
             info = await client.get_device_info()
         snapshot["battery"] = battery.battery_level
@@ -35,7 +38,7 @@ class ColmiRingApi:
         return snapshot
 
     async def read_realtime(self, reading_name: str) -> dict[str, Any]:
-        async with ColmiRingClient(self._address) as client:
+        async with ColmiRingClient(self._hass, self._address) as client:
             values = await client.get_realtime_reading(reading_name)
         return {
             "reading": reading_name,
@@ -57,7 +60,7 @@ class ColmiRingApi:
         if sync_end.tzinfo is None:
             sync_end = sync_end.replace(tzinfo=timezone.utc)
 
-        async with ColmiRingClient(self._address) as client:
+        async with ColmiRingClient(self._hass, self._address) as client:
             heart_logs, step_logs = await client.get_full_data(sync_start, sync_end)
             await client.set_time(datetime.now(timezone.utc))
 

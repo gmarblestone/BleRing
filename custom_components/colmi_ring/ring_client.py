@@ -10,6 +10,9 @@ from typing import Any
 
 from bleak import BleakClient, BleakScanner
 from bleak_retry_connector import BleakClientWithServiceCache, establish_connection
+from homeassistant.components import bluetooth
+from homeassistant.components.bluetooth import BluetoothReachabilityIntent
+from homeassistant.core import HomeAssistant
 
 LOGGER = logging.getLogger(__name__)
 
@@ -199,7 +202,8 @@ class SportDetailParser:
 
 
 class ColmiRingClient:
-    def __init__(self, address: str) -> None:
+    def __init__(self, hass: HomeAssistant, address: str) -> None:
+        self.hass = hass
         self.address = address
         self._client: BleakClient = BleakClient(address)
         self._queues: dict[int, asyncio.Queue[Any]] = {
@@ -221,9 +225,17 @@ class ColmiRingClient:
         await self.disconnect()
 
     async def connect(self) -> None:
-        device = await BleakScanner.find_device_by_address(self.address, timeout=10.0)
+        device = bluetooth.async_ble_device_from_address(self.hass, self.address, connectable=True)
         if device is None:
-            raise RuntimeError(f"Ring {self.address} not found during connect")
+            await bluetooth.async_request_active_scan(self.hass)
+            device = bluetooth.async_ble_device_from_address(self.hass, self.address, connectable=True)
+        if device is None:
+            reason = bluetooth.async_address_reachability_diagnostics(
+                self.hass,
+                self.address,
+                BluetoothReachabilityIntent.CONNECTION,
+            )
+            raise RuntimeError(f"Ring {self.address} not found during connect: {reason}")
         self._client = await establish_connection(
             BleakClientWithServiceCache,
             device,

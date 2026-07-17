@@ -6,9 +6,12 @@
   "documentation": "https://github.com/tahnok/colmi_r02_client",
   "issue_tracker": "https://github.com/gmarblestone/BleRing/issues",
   "iot_class": "local_polling",
+  "dependencies": [
+    "bluetooth"
+  ],
   "loggers": [
     "custom_components.colmi_ring"
   ],
   "requirements": [],
-  "version": "0.2.2"
+  "version": "0.2.3"
 }

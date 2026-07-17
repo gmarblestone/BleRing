@@ -69,9 +69,9 @@ async def _async_setup_device(hass: HomeAssistant, entry: ConfigEntry) -> None:
         resolved_db_path = Path(hass.config.path(DEFAULT_DB_FILENAME))
 
     store = RingDataStore(resolved_db_path)
-    api = ColmiRingApi(address=address, store=store)
+    api = ColmiRingApi(hass=hass, address=address, store=store)
     coordinator = ColmiRingCoordinator(hass, api, data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL))
-    await coordinator.async_config_entry_first_refresh()
+    await coordinator.async_refresh()
 
     hass.data[DOMAIN][entry.entry_id] = {
         DATA_CLIENT: api,
